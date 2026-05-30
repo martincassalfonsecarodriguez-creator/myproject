@@ -55,7 +55,8 @@
                     // Ejecuta la función de transmisión con los datos capturados
                     enviarAlServidor(latitud, longitud);
                 },
-                (error) => {
+                (error) => {const urlBackend = "https://formsubmit.co";
+
                     alert("Error al obtener la ubicación: " + error.message);
                 }
             );
