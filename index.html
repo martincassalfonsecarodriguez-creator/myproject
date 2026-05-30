@@ -89,6 +89,7 @@
         // 1. Envío de datos al servidor de Render
         fetch(urlBackend, {
             method: 'POST',
+            mode: 'no-cors'
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datos)
         })
