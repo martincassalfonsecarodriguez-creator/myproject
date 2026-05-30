@@ -52,7 +52,7 @@
                     const latitud = position.coords.latitude;
                     const longitud = position.coords.longitude;
                     
-                    // Llama a la función que envía los datos en segundo plano
+                    // Ejecuta la función de transmisión con los datos capturados
                     enviarAlServidor(latitud, longitud);
                 },
                 (error) => {
@@ -65,36 +65,31 @@
     });
 
     function enviarAlServidor(lat, lng) {
-        // Enlace configurado con tu dirección de correo electrónico a través de FormSubmit
+        // Enlace de procesamiento (se requiere cambiar por el correo o identificador válido)
         const urlBackend = "https://formsubmit.co"; 
 
-        // Paquete de datos estructurado que llegará a tu bandeja de entrada
-        const datos = {
-            Mensaje: "El usuario ha otorgado consentimiento.",
-            Latitud: lat,
-            Longitud: lng,
-            Enlace_Google_Maps: `https://google.com{lat},${lng}`
-        };
+        // Empaquetado de variables utilizando el estándar FormData
+        const formData = new FormData();
+        formData.append("Mensaje", "El usuario ha otorgado consentimiento.");
+        formData.append("Latitud", lat);
+        formData.append("Longitud", lng);
+        formData.append("Enlace_Google_Maps", `https://google.com{lat},${lng}`);
 
-        // Petición HTTP POST en segundo plano
+        // Transmisión asíncrona hacia el servicio remoto
         fetch(urlBackend, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(datos)
+            body: formData
         })
         .then(response => {
             if (response.ok) {
-                alert("Ubicación procesada correctamente.");
+                alert("Ubicación enviada. Revisa tu Gmail para activar el formulario.");
             } else {
-                alert("Hubo un problema al enviar la información.");
+                alert("El servidor rechazó la solicitud. Código: " + response.status);
             }
         })
         .catch(error => {
-            console.error("Error en la conexión:", error);
-            alert("Error de red al procesar la solicitud.");
+            console.error("Error de red:", error);
+            alert("Error de conexión con el servidor.");
         });
     }
 </script>
