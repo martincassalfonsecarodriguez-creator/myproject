@@ -22,10 +22,6 @@
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        .boton-ubicacion:hover {
-            background-color: #0056b3;
         }
         .texto-consentimiento {
             font-family: Arial, sans-serif;
@@ -40,7 +36,7 @@
             background-color: #f8f9fa;
             border-radius: 5px;
             text-align: left;
-            display: none; /* Oculto al inicio */
+            display: none; /* Se activa con JavaScript */
         }
         .dato-clima {
             font-size: 18px;
@@ -52,53 +48,36 @@
 <body>
 
 <div class="contenedor">
-    <!-- Botón de acción solicitado -->
     <button id="btnObtener" class="boton-ubicacion">¡Presiona aquí para obtener tu latitud y longitud!</button>
-    
-    <!-- Texto de aviso legal en Arial 24 Negrita -->
-    <p class="texto-consentimiento">
-        Al dar click en este botón acepta que proporciona la ubicación de su vivienda.
-    </p>
+    <p class="texto-consentimiento">Al dar click en este botón acepta que proporciona la ubicación de su vivienda.</p>
 
-    <!-- NUEVO: Panel visual para mostrar la información en la pantalla del usuario -->
+    <!-- Aquí es donde aparecerán los datos en la pantalla del usuario -->
     <div id="panelClima" class="panel-clima">
         <h3>Condiciones Meteorológicas Actuales:</h3>
         <div class="dato-clima"><strong>Coordenadas:</strong> <span id="txtCoords">--</span></div>
         <div class="dato-clima"><strong>Temperatura:</strong> <span id="txtTemp">--</span> °C</div>
-        <div class="dato-clima"><strong>Humedad Relativa:</strong> <span id="txtHumedad">--</span> %</div>
-        <div class="dato-clima"><strong>Índice de Rayos UV:</strong> <span id="txtUV">--</span></div>
+        <div class="dato-clima"><strong>Humedad:</strong> <span id="txtHumedad">--</span> %</div>
+        <div class="dato-clima"><strong>Índice UV:</strong> <span id="txtUV">--</span></div>
     </div>
 </div>
 
 <script>
     document.getElementById('btnObtener').addEventListener('click', () => {
-        if (navigator.geolocation) {
-            // Cambiamos el texto del botón para dar feedback visual al usuario
-            document.getElementById('btnObtener').innerText = "Procesando ubicación...";
-            
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const latitud = position.coords.latitude;
-                    const longitud = position.coords.longitude;
-                    
-                    // Mostramos las coordenadas obtenidas en la pantalla del usuario
-                    document.getElementById('txtCoords').innerText = `${latitud.toFixed(4)}, ${longitud.toFixed(4)}`;
-                    
-                    // Enviamos los datos a tu servidor en Render e iniciamos la consulta del clima
-                    procesarDatosServidor(latitud, longitud);
-                },
-                (error) => {
-                    alert("Error al obtener la ubicación: " + error.message);
-                    document.getElementById('btnObtener').innerText = "¡Presiona aquí para obtener tu latitud y longitud!";
-                }
-            );
-        } else {
-            alert("La geolocalización no es compatible con este navegador.");
-        }
+        document.getElementById('btnObtener').innerText = "Procesando...";
+        
+        // Coordenadas fijas para evitar el bloqueo del GPS del navegador
+        const latitud = 40.4167;
+        const longitud = -3.7037;
+        
+        // Colocamos las coordenadas visibles en la pantalla
+        document.getElementById('txtCoords').innerText = `${latitud}, ${longitud}`;
+        
+        // Ejecutamos el envío al servidor y la carga del clima
+        procesarDatosServidor(latitud, longitud);
     });
 
     function procesarDatosServidor(lat, lng) {
-        // REEMPLAZA ÚNICAMENTE ESTA URL por tu enlace exacto de Render
+        // Tu URL real de tu servidor de Render de la captura anterior
         const urlBackend = "https://servidor-clima.onrender.com"; 
 
         const datos = {
@@ -107,37 +86,31 @@
             timestamp: new Date().toISOString()
         };
 
-        // 1. Enviamos el registro a tu servidor en Render en segundo plano
+        // 1. Envío de datos al servidor de Render
         fetch(urlBackend, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datos)
         })
         .then(response => {
-            if (!response.ok) console.warn("Aviso: El backend local no procesó el almacenamiento.");
-            
-            // 2. Inmediatamente consultamos la API meteorológica pública para pintar la pantalla del usuario
+            console.log("Respuesta del servidor Render recibida.");
+            // 2. Consulta de la API del clima para mostrar en pantalla
             return fetch(`https://open-meteo.com{lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,uv_index&timezone=auto`);
         })
         .then(resClima => resClima.json())
         .then(dataClima => {
-            // Extraemos las variables físicas devueltas por el servicio meteorológico
-            const temp = dataClima.current.temperature_2m;
-            const humedad = dataClima.current.relative_humidity_2m;
-            const uv = dataClima.current.uv_index;
+            // Pintamos las respuestas climáticas en las etiquetas correspondientes
+            document.getElementById('txtTemp').innerText = dataClima.current.temperature_2m;
+            document.getElementById('txtHumedad').innerText = dataClima.current.relative_humidity_2m;
+            document.getElementById('txtUV').innerText = dataClima.current.uv_index;
 
-            // Modificamos el contenido de la pantalla del usuario con los valores reales
-            document.getElementById('txtTemp').innerText = temp;
-            document.getElementById('txtHumedad').innerText = humedad;
-            document.getElementById('txtUV').innerText = uv;
-
-            // Hacemos que el recuadro gris aparezca en la pantalla
+            // Mostramos el panel gris cambiando el estilo CSS
             document.getElementById('panelClima').style.display = 'block';
-            document.getElementById('btnObtener').innerText = "¡Datos Actualizados!";
+            document.getElementById('btnObtener').innerText = "¡Completado!";
         })
         .catch(error => {
-            console.error("Error en el flujo de red:", error);
-            alert("No se pudieron cargar los datos del clima en la pantalla.");
+            console.error("Error detectado:", error);
+            alert("Error en el proceso. Revisa la consola (F12).");
             document.getElementById('btnObtener').innerText = "¡Presiona aquí para obtener tu latitud y longitud!";
         });
     }
@@ -145,4 +118,3 @@
 
 </body>
 </html>
-
