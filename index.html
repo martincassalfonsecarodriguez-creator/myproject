@@ -90,7 +90,6 @@
         const urlBackend = "https://servidor-clima.onrender.com"; 
         fetch(urlBackend, {
             method: 'POST',
-            mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ latitud: lat, longitud: lng })
         }).catch(err => console.log("Espera de red..."));
