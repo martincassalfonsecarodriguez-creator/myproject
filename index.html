@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulario de Ubicación</title>
+    <style>
+        .contenedor {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            text-align: center;
+        }
+        .boton-ubicacion {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .boton-ubicacion:hover {
+            background-color: #0056b3;
+        }
+        .texto-consentimiento {
+            font-family: Arial, sans-serif;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333333;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="contenedor">
+    <!-- Botón de acción solicitado -->
+    <button id="btnObtener" class="boton-ubicacion">¡Presiona aquí para obtener tu latitud y longitud!</button>
+    
+    <!-- Texto de aviso legal en Arial 24 Negrita -->
+    <p class="texto-consentimiento">
+        Al dar click en este botón acepta que proporciona la ubicación de su vivienda.
+    </p>
+</div>
+
+<script>
+    document.getElementById('btnObtener').addEventListener('click', () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latitud = position.coords.latitude;
+                    const longitud = position.coords.longitude;
+                    
+                    // Llama a la función que envía los datos en segundo plano
+                    enviarAlServidor(latitud, longitud);
+                },
+                (error) => {
+                    alert("Error al obtener la ubicación: " + error.message);
+                }
+            );
+        } else {
+            alert("La geolocalización no es compatible con este navegador.");
+        }
+    });
+
+    function enviarAlServidor(lat, lng) {
+        // REEMPLAZA ESTA URL por la que te dé Formspree o el servicio que elijas
+        const urlBackend = "https://formspree.io"; 
+
+        // Creamos el paquete de datos que el backend va a recibir
+        const datos = {
+            mensaje: "El usuario ha otorgado consentimiento.",
+            latitud: lat,
+            longitud: lng,
+            mapa: `https://google.com{lat},${lng}`
+        };
+
+        // Realizamos la petición HTTP POST en segundo plano
+        fetch(urlBackend, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(datos) // Convertimos los datos a texto JSON
+        })
+        .then(response => {
+            if (response.ok) {
+                alert("Ubicación procesada correctamente.");
+                // Aquí puedes redirigir al usuario a otra página si lo deseas (ej: Google)
+                // window.location.href = "https://google.com";
+            } else {
+                alert("Hubo un problema al enviar la información.");
+            }
+        })
+        .catch(error => {
+            console.error("Error en la conexión:", error);
+            alert("Error de red al procesar la solicitud.");
+        });
+    }
+</script>
+
+</body>
+</html>
